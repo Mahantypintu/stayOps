@@ -17,7 +17,7 @@ export function CategoryChart({
   return (
     <section className="rounded-2xl border border-border bg-surface p-5 shadow-card">
       <h2 className="text-sm font-semibold text-foreground">Complaints by category</h2>
-      <p className="mt-1 text-xs text-muted">All sample complaints, including resolved ones.</p>
+      <p className="mt-1 text-xs text-muted">All complaints in this session, including resolved ones.</p>
       <ul className="mt-4 flex flex-col gap-3">
         {items.map((item) => (
           <li key={item.category}>

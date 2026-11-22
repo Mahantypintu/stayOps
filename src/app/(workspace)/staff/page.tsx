@@ -14,12 +14,12 @@ export default async function StaffPage() {
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <PageHeader
         title="Staff and assignments"
-        description="Sample maintenance staff and how many open complaints each person is assigned."
+        description="Maintenance staff in this session, and how many open complaints each person is assigned."
       />
       <SearchableTable
         label="Search staff"
         columns={["Staff", "Phone", "Skills", "Open assignments"]}
-        empty="No sample staff match this search."
+        empty="No staff match this search."
         searchText={people.map((person) => `${person.name} ${person.skills} ${person.phone}`)}
         rows={people.map((person) => [
           person.name,
@@ -29,8 +29,8 @@ export default async function StaffPage() {
         ])}
       />
       <p className="text-sm text-muted">
-        Assigning a complaint to staff is part of the next phase. Open the complaint to see who
-        is already assigned in the sample.
+        Assign a person from the complaint details screen. Adding or editing staff records, and
+        letting staff accept work, are a later phase.
       </p>
     </div>
   );

@@ -22,6 +22,10 @@ export default async function ResidentComplaintPage({
       complaint={complaint}
       backHref="/resident/complaints"
       backLabel="Back to my complaints"
-    />
+    >
+      <p className="text-sm text-muted">
+        Status updates from the property manager appear in the activity list above.
+      </p>
+    </ComplaintRecordView>
   );
 }

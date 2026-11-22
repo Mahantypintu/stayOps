@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RestoreSampleForm } from "@/components/settings/restore-sample-form";
 import { PageHeader } from "@/components/ui/page-header";
 import { brand } from "@/lib/brand";
 import { getWorkspace } from "@/services/workspace";
@@ -24,6 +25,7 @@ export default async function SettingsPage() {
           <dd className="mt-1 text-sm text-foreground">{brand.description}</dd>
         </div>
       </dl>
+      <RestoreSampleForm />
     </div>
   );
 }

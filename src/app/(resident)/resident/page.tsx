@@ -1,28 +1,39 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { prototypePeople, sampleResidentId } from "@/data/sample-clock";
 import { formatSampleDateTime } from "@/lib/format";
 import { complaintStatusTone } from "@/lib/status-map";
-import { listComplaintsForResident } from "@/services/operations";
+import { getResidentStay, listComplaintsForResident } from "@/services/operations";
 
 export const metadata: Metadata = { title: "Resident home" };
 
 export default async function ResidentHomePage() {
-  const complaints = await listComplaintsForResident(sampleResidentId);
+  const [stay, complaints] = await Promise.all([
+    getResidentStay(sampleResidentId),
+    listComplaintsForResident(sampleResidentId),
+  ]);
+  if (!stay) {
+    notFound();
+  }
   const open = complaints.filter((item) => item.status !== "Resolved");
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <PageHeader
         title={`Hello, ${prototypePeople.resident.name}`}
-        description="Your sample stay at Harbour House PG, room H-102, bed A. This is the resident view, not the manager workspace."
+        description={
+          stay.staying
+            ? `Your stay at ${stay.propertyName}, ${stay.locationLabel}. This is the resident view, not the manager workspace.`
+            : "This sample resident is marked as moved out. A manager can assign a bed again from the residents screen."
+        }
       />
       <section className="rounded-2xl border border-border bg-surface p-5 shadow-card">
         <h2 className="text-sm font-semibold text-foreground">Open complaints</h2>
         {open.length === 0 ? (
-          <p className="mt-3 text-sm text-muted">No open sample complaints.</p>
+          <p className="mt-3 text-sm text-muted">No open complaints.</p>
         ) : (
           <ul className="mt-4 flex flex-col gap-3">
             {open.map((item) => (

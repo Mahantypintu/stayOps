@@ -1,14 +1,4 @@
-import {
-  beds,
-  complaintEvents,
-  complaints,
-  floors,
-  properties,
-  qrTargets,
-  residents,
-  rooms,
-  staff,
-} from "@/data/sample-records";
+import { getSessionRecords, type SessionRecords } from "@/data/session-store";
 import { sampleAsOf } from "@/data/sample-clock";
 import { dateKey } from "@/lib/format";
 import type {
@@ -23,7 +13,7 @@ const asOfDate = dateKey(sampleAsOf);
 function byId<T extends { id: string }>(records: T[], id: string) {
   const record = records.find((item) => item.id === id);
   if (!record) {
-    throw new Error(`Missing sample record ${id}`);
+    throw new Error(`Missing session record ${id}`);
   }
   return record;
 }
@@ -40,28 +30,27 @@ export function isOverdue(complaint: Pick<ComplaintRecord, "status" | "expectedR
   );
 }
 
-function propertyName(id: string) {
-  return byId(properties, id).name;
-}
-
-function floorName(id: string | null) {
-  return id ? byId(floors, id).name : "—";
-}
-
-function roomNumber(id: string | null) {
-  return id ? byId(rooms, id).number : "—";
-}
-
-function bedLabel(id: string | null) {
-  return id ? byId(beds, id).label : "—";
-}
-
-function residentName(id: string) {
-  return byId(residents, id).name;
-}
-
-function staffName(id: string | null) {
-  return id ? byId(staff, id).name : "Unassigned";
+function labels(store: SessionRecords) {
+  return {
+    propertyName(id: string) {
+      return byId(store.properties, id).name;
+    },
+    floorName(id: string | null) {
+      return id ? byId(store.floors, id).name : "—";
+    },
+    roomNumber(id: string | null) {
+      return id ? byId(store.rooms, id).number : "—";
+    },
+    bedLabel(id: string | null) {
+      return id ? byId(store.beds, id).label : "—";
+    },
+    residentName(id: string) {
+      return byId(store.residents, id).name;
+    },
+    staffName(id: string | null) {
+      return id ? byId(store.staff, id).name : "Unassigned";
+    },
+  };
 }
 
 export type ComplaintListItem = {
@@ -94,49 +83,53 @@ export type ComplaintDetail = ComplaintListItem & {
   events: { id: string; at: string; actor: string; summary: string }[];
 };
 
-function toListItem(complaint: ComplaintRecord): ComplaintListItem {
+function toListItem(store: SessionRecords, complaint: ComplaintRecord): ComplaintListItem {
+  const name = labels(store);
   return {
     id: complaint.id,
     title: complaint.title,
     category: complaint.category,
     priority: complaint.priority,
     status: complaint.status,
-    propertyName: propertyName(complaint.propertyId),
+    propertyName: name.propertyName(complaint.propertyId),
     locationLabel: complaint.locationLabel,
-    residentName: residentName(complaint.residentId),
-    staffName: staffName(complaint.staffId),
+    residentName: name.residentName(complaint.residentId),
+    staffName: name.staffName(complaint.staffId),
     reportedAt: complaint.reportedAt,
     overdue: isOverdue(complaint),
   };
 }
 
 export async function listComplaints(): Promise<ComplaintListItem[]> {
-  return complaints
-    .map(toListItem)
+  const store = getSessionRecords();
+  return store.complaints
+    .map((complaint) => toListItem(store, complaint))
     .sort((a, b) => (a.reportedAt < b.reportedAt ? 1 : -1));
 }
 
 export async function getComplaint(id: string): Promise<ComplaintDetail | null> {
-  const complaint = complaints.find((item) => item.id === id);
+  const store = getSessionRecords();
+  const complaint = store.complaints.find((item) => item.id === id);
   if (!complaint) {
     return null;
   }
+  const name = labels(store);
 
   return {
-    ...toListItem(complaint),
+    ...toListItem(store, complaint),
     residentId: complaint.residentId,
     staffId: complaint.staffId,
     description: complaint.description,
-    floorName: floorName(complaint.floorId),
-    roomNumber: roomNumber(complaint.roomId),
-    bedLabel: bedLabel(complaint.bedId),
+    floorName: name.floorName(complaint.floorId),
+    roomNumber: name.roomNumber(complaint.roomId),
+    bedLabel: name.bedLabel(complaint.bedId),
     expectedResolution: complaint.expectedResolution,
     resolvedAt: complaint.resolvedAt,
     resolutionRemarks: complaint.resolutionRemarks,
     managerNote: complaint.managerNote,
     hasReportPhotos: complaint.hasReportPhotos,
     hasCompletionPhotos: complaint.hasCompletionPhotos,
-    events: complaintEvents
+    events: store.events
       .filter((event) => event.complaintId === id)
       .sort((a, b) => (a.at < b.at ? -1 : 1))
       .map((event) => ({
@@ -149,16 +142,18 @@ export async function getComplaint(id: string): Promise<ComplaintDetail | null> 
 }
 
 export async function listComplaintsForResident(residentId: string) {
+  const store = getSessionRecords();
   const items = await listComplaints();
   const residentComplaintIds = new Set(
-    complaints.filter((item) => item.residentId === residentId).map((item) => item.id),
+    store.complaints.filter((item) => item.residentId === residentId).map((item) => item.id),
   );
   return items.filter((item) => residentComplaintIds.has(item.id));
 }
 
 export async function listComplaintsForStaff(staffId: string) {
+  const store = getSessionRecords();
   const assigned = new Set(
-    complaints.filter((item) => item.staffId === staffId).map((item) => item.id),
+    store.complaints.filter((item) => item.staffId === staffId).map((item) => item.id),
   );
   const items = await listComplaints();
   return items.filter((item) => assigned.has(item.id));
@@ -177,11 +172,12 @@ export type PropertySummary = {
 };
 
 export async function listProperties(): Promise<PropertySummary[]> {
-  return properties.map((property) => {
-    const propertyRooms = rooms.filter((room) => room.propertyId === property.id);
+  const store = getSessionRecords();
+  return store.properties.map((property) => {
+    const propertyRooms = store.rooms.filter((room) => room.propertyId === property.id);
     const roomIds = new Set(propertyRooms.map((room) => room.id));
-    const propertyBeds = beds.filter((bed) => roomIds.has(bed.roomId));
-    const occupied = residents.filter(
+    const propertyBeds = store.beds.filter((bed) => roomIds.has(bed.roomId));
+    const occupied = store.residents.filter(
       (resident) => resident.propertyId === property.id && resident.moveOut === null,
     ).length;
 
@@ -190,7 +186,7 @@ export async function listProperties(): Promise<PropertySummary[]> {
       name: property.name,
       address: property.address,
       city: property.city,
-      floors: floors.filter((floor) => floor.propertyId === property.id).length,
+      floors: store.floors.filter((floor) => floor.propertyId === property.id).length,
       rooms: propertyRooms.length,
       beds: propertyBeds.length,
       occupied,
@@ -210,22 +206,42 @@ export type RoomSummary = {
 };
 
 export async function listRooms(): Promise<RoomSummary[]> {
-  return rooms.map((room) => {
-    const roomBeds = beds.filter((bed) => bed.roomId === room.id);
-    const occupied = residents.filter(
+  const store = getSessionRecords();
+  const name = labels(store);
+  return store.rooms.map((room) => {
+    const roomBeds = store.beds.filter((bed) => bed.roomId === room.id);
+    const occupied = store.residents.filter(
       (resident) => resident.roomId === room.id && resident.moveOut === null,
     ).length;
 
     return {
       id: room.id,
       number: room.number,
-      propertyName: propertyName(room.propertyId),
-      floorName: floorName(room.floorId),
+      propertyName: name.propertyName(room.propertyId),
+      floorName: name.floorName(room.floorId),
       beds: roomBeds.length,
       occupied,
       available: roomBeds.length - occupied,
     };
   });
+}
+
+export type FloorSummary = {
+  id: string;
+  propertyId: string;
+  name: string;
+  propertyName: string;
+};
+
+export async function listFloors(): Promise<FloorSummary[]> {
+  const store = getSessionRecords();
+  const name = labels(store);
+  return store.floors.map((floor) => ({
+    id: floor.id,
+    propertyId: floor.propertyId,
+    name: floor.name,
+    propertyName: name.propertyName(floor.propertyId),
+  }));
 }
 
 export type ResidentSummary = {
@@ -236,30 +252,128 @@ export type ResidentSummary = {
   floorName: string;
   roomNumber: string;
   bedLabel: string;
+  bedId: string;
   moveIn: string;
+  moveOut: string | null;
   openComplaints: number;
 };
 
 export async function listResidents(): Promise<ResidentSummary[]> {
-  return residents
+  const store = getSessionRecords();
+  const name = labels(store);
+  return store.residents
     .filter((resident) => resident.moveOut === null)
     .map((resident) => {
-      const room = byId(rooms, resident.roomId);
+      const room = byId(store.rooms, resident.roomId);
       return {
         id: resident.id,
         name: resident.name,
         phone: resident.phone,
-        propertyName: propertyName(resident.propertyId),
-        floorName: floorName(room.floorId),
+        propertyName: name.propertyName(resident.propertyId),
+        floorName: name.floorName(room.floorId),
         roomNumber: room.number,
-        bedLabel: bedLabel(resident.bedId),
+        bedLabel: name.bedLabel(resident.bedId),
+        bedId: resident.bedId,
         moveIn: resident.moveIn,
-        openComplaints: complaints.filter(
+        moveOut: resident.moveOut,
+        openComplaints: store.complaints.filter(
           (complaint) =>
             complaint.residentId === resident.id && isOpenComplaint(complaint.status),
         ).length,
       };
     });
+}
+
+export type ResidentChoice = ResidentSummary & { staying: boolean };
+
+export async function listResidentChoices(): Promise<ResidentChoice[]> {
+  const store = getSessionRecords();
+  const name = labels(store);
+  return store.residents.map((resident) => {
+    const room = byId(store.rooms, resident.roomId);
+    return {
+      id: resident.id,
+      name: resident.name,
+      phone: resident.phone,
+      propertyName: name.propertyName(resident.propertyId),
+      floorName: name.floorName(room.floorId),
+      roomNumber: room.number,
+      bedLabel: name.bedLabel(resident.bedId),
+      bedId: resident.bedId,
+      moveIn: resident.moveIn,
+      moveOut: resident.moveOut,
+      staying: resident.moveOut === null,
+      openComplaints: store.complaints.filter(
+        (complaint) => complaint.residentId === resident.id && isOpenComplaint(complaint.status),
+      ).length,
+    };
+  });
+}
+
+export type BedChoice = {
+  id: string;
+  label: string;
+};
+
+function bedChoiceLabel(store: SessionRecords, bedId: string) {
+  const name = labels(store);
+  const bed = byId(store.beds, bedId);
+  const room = byId(store.rooms, bed.roomId);
+  return `${name.propertyName(room.propertyId)} · ${name.floorName(room.floorId)} · Room ${room.number} · Bed ${bed.label}`;
+}
+
+export async function listVacantBeds(): Promise<BedChoice[]> {
+  const store = getSessionRecords();
+  const taken = new Set(
+    store.residents.filter((resident) => resident.moveOut === null).map((resident) => resident.bedId),
+  );
+  return store.beds
+    .filter((bed) => !taken.has(bed.id))
+    .map((bed) => ({
+      id: bed.id,
+      label: bedChoiceLabel(store, bed.id),
+    }));
+}
+
+export type BedAssignment = BedChoice & { residentId: string | null };
+
+export async function listBedAssignments(): Promise<BedAssignment[]> {
+  const store = getSessionRecords();
+  return store.beds.map((bed) => {
+    const occupant = store.residents.find(
+      (resident) => resident.bedId === bed.id && resident.moveOut === null,
+    );
+    return {
+      id: bed.id,
+      label: bedChoiceLabel(store, bed.id),
+      residentId: occupant?.id ?? null,
+    };
+  });
+}
+
+export type ResidentStay = {
+  id: string;
+  name: string;
+  staying: boolean;
+  propertyName: string;
+  locationLabel: string;
+};
+
+export async function getResidentStay(residentId: string): Promise<ResidentStay | null> {
+  const store = getSessionRecords();
+  const resident = store.residents.find((item) => item.id === residentId);
+  if (!resident) {
+    return null;
+  }
+  const name = labels(store);
+  const room = byId(store.rooms, resident.roomId);
+  return {
+    id: resident.id,
+    name: resident.name,
+    staying: resident.moveOut === null,
+    propertyName: name.propertyName(resident.propertyId),
+    locationLabel: `Room ${room.number}, bed ${name.bedLabel(resident.bedId)}`,
+  };
 }
 
 export type StaffSummary = {
@@ -271,12 +385,13 @@ export type StaffSummary = {
 };
 
 export async function listStaff(): Promise<StaffSummary[]> {
-  return staff.map((person) => ({
+  const store = getSessionRecords();
+  return store.staff.map((person) => ({
     id: person.id,
     name: person.name,
     phone: person.phone,
     skills: person.skills.join(", "),
-    openAssignments: complaints.filter(
+    openAssignments: store.complaints.filter(
       (complaint) => complaint.staffId === person.id && isOpenComplaint(complaint.status),
     ).length,
   }));
@@ -291,21 +406,24 @@ export type QrSummary = {
 };
 
 export async function listQrTargets(): Promise<QrSummary[]> {
-  return qrTargets.map((target) => ({
+  const store = getSessionRecords();
+  const name = labels(store);
+  return store.qrTargets.map((target) => ({
     id: target.id,
-    propertyName: propertyName(target.propertyId),
-    floorName: floorName(target.floorId),
+    propertyName: name.propertyName(target.propertyId),
+    floorName: name.floorName(target.floorId),
     label: target.label,
     kind: target.kind,
   }));
 }
 
 export async function getDashboard() {
+  const store = getSessionRecords();
   const propertySummaries = await listProperties();
-  const complaintItems = complaints;
+  const complaintItems = store.complaints;
   const open = complaintItems.filter((item) => isOpenComplaint(item.status));
   const occupied = propertySummaries.reduce((sum, item) => sum + item.occupied, 0);
-  const bedCount = beds.length;
+  const bedCount = store.beds.length;
 
   const categories = complaintItems.reduce<Record<string, number>>((counts, complaint) => {
     counts[complaint.category] = (counts[complaint.category] ?? 0) + 1;
@@ -318,17 +436,17 @@ export async function getDashboard() {
     resolved: complaintItems.filter((item) => item.resolvedAt?.startsWith(month)).length,
   }));
 
-  const events = [...complaintEvents].sort((a, b) => (a.at < b.at ? 1 : -1));
+  const events = [...store.events].sort((a, b) => (a.at < b.at ? 1 : -1));
 
   return {
     asOf: sampleAsOf,
     occupancy: {
-      properties: properties.length,
-      rooms: rooms.length,
+      properties: store.properties.length,
+      rooms: store.rooms.length,
       beds: bedCount,
       occupied,
       available: bedCount - occupied,
-      residents: residents.filter((resident) => resident.moveOut === null).length,
+      residents: store.residents.filter((resident) => resident.moveOut === null).length,
     },
     complaints: {
       new: open.filter((item) => item.status === "New").length,
@@ -345,7 +463,7 @@ export async function getDashboard() {
     resolutionTrend,
     recentComplaints: events.slice(0, 5),
     recentStaffActivity: events
-      .filter((event) => staff.some((person) => person.name === event.actor))
+      .filter((event) => store.staff.some((person) => person.name === event.actor))
       .slice(0, 4),
   };
 }

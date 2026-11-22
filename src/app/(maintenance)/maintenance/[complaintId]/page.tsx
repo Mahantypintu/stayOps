@@ -18,10 +18,10 @@ export default async function MaintenanceTaskPage({
   }
 
   return (
-    <ComplaintRecordView
-      complaint={complaint}
-      backHref="/maintenance"
-      backLabel="Back to my tasks"
-    />
+    <ComplaintRecordView complaint={complaint} backHref="/maintenance" backLabel="Back to my tasks">
+      <p className="text-sm text-muted">
+        Accepting this task, updating progress, and adding completion photos are the next phase.
+      </p>
+    </ComplaintRecordView>
   );
 }

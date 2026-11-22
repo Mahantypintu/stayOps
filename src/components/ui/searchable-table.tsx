@@ -33,7 +33,7 @@ export function SearchableTable({
         />
       </label>
       <p className="text-sm text-muted">
-        {visible.length} of {rows.length} sample records
+        {visible.length} of {rows.length} records
       </p>
       <DataTable columns={columns} rows={visible} empty={empty} />
     </div>

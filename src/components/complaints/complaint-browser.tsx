@@ -73,11 +73,11 @@ export function ComplaintBrowser({
         />
       </div>
       <p className="text-sm text-muted">
-        {filtered.length} of {complaints.length} sample complaints
+        {filtered.length} of {complaints.length} complaints
       </p>
       <DataTable
         columns={["Complaint", "Status", "Priority", "Location", "Staff", "Reported"]}
-        empty="No sample complaints match these filters."
+        empty="No complaints match these filters."
         rows={filtered.map((item) => [
           <Link key={item.id} href={`${hrefBase}/${item.id}`} className="font-medium text-accent hover:underline">
             {item.id}

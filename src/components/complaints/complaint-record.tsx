@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatSampleDate, formatSampleDateTime } from "@/lib/format";
 import { complaintPriorityTone, complaintStatusTone } from "@/lib/status-map";
@@ -8,10 +9,12 @@ export function ComplaintRecordView({
   complaint,
   backHref,
   backLabel,
+  children,
 }: {
   complaint: ComplaintDetail;
   backHref: string;
   backLabel: string;
+  children?: ReactNode;
 }) {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
@@ -90,10 +93,7 @@ export function ComplaintRecordView({
         )}
       </section>
 
-      <p className="text-sm text-muted">
-        Changing status, assigning staff, and uploading photos are not available in this
-        prototype.
-      </p>
+      {children}
     </div>
   );
 }
@@ -113,8 +113,8 @@ function PhotoSlot({ label, present }: { label: string; present: boolean }) {
       <p className="text-sm font-medium text-foreground">{label}</p>
       <p className="mt-1 text-sm text-muted">
         {present
-          ? "The sample record is marked as having a photo. Image files are not included."
-          : "No photo on this sample record."}
+          ? "This record is marked as having a photo. The image file is not stored in this phase."
+          : "No photo is attached."}
       </p>
     </div>
   );

@@ -16,7 +16,7 @@ type Variant = keyof typeof variants;
 type Size = keyof typeof sizes;
 
 function buttonClasses(variant: Variant, size: Size, className?: string) {
-  return `inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${sizes[size]} ${variants[variant]} ${className ?? ""}`;
+  return `inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60 ${sizes[size]} ${variants[variant]} ${className ?? ""}`;
 }
 
 export function Button({

@@ -17,7 +17,7 @@ export default async function DashboardPage() {
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <PageHeader
         title="Dashboard"
-        description="Occupancy and complaint workload for the sample PG properties."
+        description="Occupancy and complaint workload for the properties in this session."
       />
       <StatGroup
         title="Occupancy"

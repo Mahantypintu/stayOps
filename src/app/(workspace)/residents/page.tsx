@@ -1,26 +1,34 @@
 import type { Metadata } from "next";
+import { ResidentForms } from "@/components/properties/resident-forms";
 import { PageHeader } from "@/components/ui/page-header";
 import { SearchableTable } from "@/components/ui/searchable-table";
+import { todayKey } from "@/lib/session-time";
 import { formatSampleDate } from "@/lib/format";
-import { listResidents } from "@/services/operations";
+import { listBedAssignments, listResidentChoices, listResidents, listVacantBeds } from "@/services/operations";
 
 export const metadata: Metadata = {
   title: "Residents",
 };
 
 export default async function ResidentsPage() {
-  const residents = await listResidents();
+  const [residents, choices, vacantBeds, beds] = await Promise.all([
+    listResidents(),
+    listResidentChoices(),
+    listVacantBeds(),
+    listBedAssignments(),
+  ]);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <PageHeader
         title="Residents"
-        description="People currently staying in the sample PG, and the bed each person is assigned to."
+        description="People staying in this session, and the bed each person is assigned to."
       />
+      <ResidentForms residents={choices} vacantBeds={vacantBeds} beds={beds} today={todayKey()} />
       <SearchableTable
         label="Search residents"
         columns={["Resident", "Phone", "Property", "Room", "Bed", "Move-in", "Open complaints"]}
-        empty="No sample residents match this search."
+        empty="No active residents match this search."
         searchText={residents.map(
           (resident) =>
             `${resident.name} ${resident.phone} ${resident.propertyName} ${resident.roomNumber}`,
@@ -35,9 +43,6 @@ export default async function ResidentsPage() {
           resident.openComplaints,
         ])}
       />
-      <p className="text-sm text-muted">
-        Adding a resident or recording a move-out is part of the next phase.
-      </p>
     </div>
   );
 }

@@ -13,7 +13,7 @@ export default async function MaintenanceHomePage() {
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <PageHeader
         title="My tasks"
-        description={`Complaints assigned to ${prototypePeople.staff.name} in the sample. Accepting work and posting completion notes is the next phase.`}
+        description={`Complaints assigned to ${prototypePeople.staff.name}. A manager assignment shows up here. Accepting work and posting completion notes is the next phase.`}
       />
       <ComplaintBrowser complaints={complaints} asOf={sampleAsOf} hrefBase="/maintenance" />
     </div>
