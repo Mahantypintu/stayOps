@@ -1,33 +1,31 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { prototypePeople, sampleResidentId } from "@/data/sample-clock";
 import { formatSampleDateTime } from "@/lib/format";
 import { complaintStatusTone } from "@/lib/status-map";
-import { getResidentStay, listComplaintsForResident } from "@/services/operations";
+import { getPrototypeResident, listComplaintsForResident } from "@/services/operations";
 
 export const metadata: Metadata = { title: "Resident home" };
 
+const emptyStay =
+  "No resident is in this session yet. Switch to Property manager and add a property, a floor, a room, and a resident. This view follows the first resident you add.";
+
 export default async function ResidentHomePage() {
-  const [stay, complaints] = await Promise.all([
-    getResidentStay(sampleResidentId),
-    listComplaintsForResident(sampleResidentId),
-  ]);
-  if (!stay) {
-    notFound();
-  }
+  const stay = await getPrototypeResident();
+  const complaints = stay ? await listComplaintsForResident(stay.id) : [];
   const open = complaints.filter((item) => item.status !== "Resolved");
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <PageHeader
-        title={`Hello, ${prototypePeople.resident.name}`}
+        title={stay ? `Hello, ${stay.name}` : "Resident"}
         description={
-          stay.staying
-            ? `Your stay at ${stay.propertyName}, ${stay.locationLabel}. This is the resident view, not the manager workspace.`
-            : "This sample resident is marked as moved out. A manager can assign a bed again from the residents screen."
+          stay
+            ? stay.staying
+              ? `Your stay at ${stay.propertyName}, ${stay.locationLabel}. This is the resident view, not the manager workspace.`
+              : `${stay.name} is moved out. A manager can assign a bed again from the residents screen.`
+            : emptyStay
         }
       />
       <section className="rounded-2xl border border-border bg-surface p-5 shadow-card">

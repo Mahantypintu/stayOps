@@ -36,9 +36,13 @@ export function ResidentForms({
         title="Add a resident"
         description="The resident is assigned to a vacant bed. This does not create a login."
       >
-        <FormBanner error={createState.error} message={createState.message} />
+        <FormBanner error={createState.error} message={createState.message} revision={createState.revision} />
         {vacantBeds.length === 0 ? (
-          <p className="text-sm text-muted">Every bed is occupied. Add a room before adding a resident.</p>
+          <p className="text-sm text-muted">
+            {beds.length === 0
+              ? "Add a room with beds before adding a resident."
+              : "Every bed is occupied. Add a room before adding another resident."}
+          </p>
         ) : (
           <form action={createAction} key={createState.savedAt ?? "new-resident"} className="grid gap-4">
             <label className="text-xs font-medium text-muted">
@@ -82,7 +86,7 @@ export function ResidentForms({
       >
         {selected ? (
           <>
-            <FormBanner error={updateState.error} message={updateState.message} />
+            <FormBanner error={updateState.error} message={updateState.message} revision={updateState.revision} />
             <form action={updateAction} key={`${selected.id}:${updateState.savedAt ?? ""}`} className="grid gap-4">
               <input type="hidden" name="id" value={selected.id} />
               <label className="text-xs font-medium text-muted">
@@ -144,7 +148,7 @@ export function ResidentForms({
         title="Record a move-out"
         description="The bed becomes vacant. Past complaints stay on the resident's history."
       >
-        <FormBanner error={moveState.error} message={moveState.message} />
+        <FormBanner error={moveState.error} message={moveState.message} revision={moveState.revision} />
         {staying.length === 0 ? (
           <p className="text-sm text-muted">No one is currently staying.</p>
         ) : (

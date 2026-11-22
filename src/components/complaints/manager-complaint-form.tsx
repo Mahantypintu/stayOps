@@ -19,7 +19,7 @@ export function ManagerComplaintForm({
       title="Record a complaint"
       description="Files a new complaint for a resident who is currently staying. Photo upload is a later phase."
     >
-      <FormBanner error={state.error} message={state.message} />
+      <FormBanner error={state.error} message={state.message} revision={state.revision} />
       {residents.length === 0 ? (
         <p className="text-sm text-muted">Add an active resident before recording a complaint.</p>
       ) : (

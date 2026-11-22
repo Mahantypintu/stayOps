@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useState, type ReactNode } from "react";
 
 export const fieldClass =
   "mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
@@ -25,22 +27,37 @@ export function FormBanner({
   error,
   message,
   className = "",
+  revision = null,
 }: {
   error: string | null;
   message: string | null;
   className?: string;
+  revision?: string | null;
 }) {
-  if (error) {
-    return (
-      <p className={`mb-4 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger ${className}`} role="alert">
-        {error}
-      </p>
-    );
+  const notice = error ?? message;
+  const token = notice ? `${revision ?? ""}:${error ? "error" : "info"}:${notice}` : "";
+  const [dismissed, setDismissed] = useState<string | null>(null);
+
+  if (!notice || dismissed === token) {
+    return null;
   }
-  if (message) {
-    return (
-      <p className={`mb-4 rounded-lg bg-info-soft px-3 py-2 text-sm text-info ${className}`}>{message}</p>
-    );
-  }
-  return null;
+
+  const tone = error ? "bg-danger-soft text-danger" : "bg-info-soft text-info";
+
+  return (
+    <div
+      className={`mb-4 flex items-start justify-between gap-3 rounded-lg px-3 py-2 text-sm ${tone} ${className}`}
+      role={error ? "alert" : "status"}
+    >
+      <p>{notice}</p>
+      <button
+        type="button"
+        aria-label="Dismiss"
+        onClick={() => setDismissed(token)}
+        className="-mr-1 shrink-0 rounded-md px-1.5 text-lg leading-none hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      >
+        ×
+      </button>
+    </div>
+  );
 }

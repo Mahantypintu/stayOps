@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/layout/app-shell";
-import { sampleAsOf, prototypePeople } from "@/data/sample-clock";
+import { prototypePeople } from "@/data/sample-clock";
 import { portalHome, type PrototypeRole } from "@/lib/prototype-role";
+import { getPrototypeResident } from "@/services/operations";
 import { getPrototypeRole } from "@/services/prototype-role";
 import { getWorkspace } from "@/services/workspace";
 import type { NavSection } from "@/types/navigation";
@@ -22,16 +23,17 @@ export async function PortalFrame({
   }
 
   const workspace = await getWorkspace();
+  const prototypeResident = role === "resident" ? await getPrototypeResident() : null;
   const person = prototypePeople[role];
+  const roleLabel = prototypeResident?.name ?? (role === "resident" ? "Resident" : person.name);
 
   return (
     <AppShell
       role={role}
       sections={sections}
-      sampleAsOf={sampleAsOf}
       workspace={{
         organizationName: workspace.organizationName,
-        roleLabel: person.name,
+        roleLabel,
       }}
     >
       {children}

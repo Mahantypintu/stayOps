@@ -359,6 +359,16 @@ export type ResidentStay = {
   locationLabel: string;
 };
 
+/** The resident role follows the first person added in this session. */
+export async function getPrototypeResident(): Promise<ResidentStay | null> {
+  const store = getSessionRecords();
+  const resident = store.residents[0];
+  if (!resident) {
+    return null;
+  }
+  return getResidentStay(resident.id);
+}
+
 export async function getResidentStay(residentId: string): Promise<ResidentStay | null> {
   const store = getSessionRecords();
   const resident = store.residents.find((item) => item.id === residentId);

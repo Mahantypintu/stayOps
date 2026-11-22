@@ -466,6 +466,28 @@ export function updateComplaintStatus(input: {
   return { ok: true, id: complaint.id };
 }
 
+export function createStaff(input: { name: string; phone: string; skills: string[] }): Result {
+  const name = input.name.trim();
+  const phone = formatPhone(input.phone);
+  if (name.length < 2 || name.length > 80) {
+    return { ok: false, error: "Enter a staff name between 2 and 80 characters." };
+  }
+  if (!phone) {
+    return { ok: false, error: "Enter a 10-digit phone number." };
+  }
+  const skills = input.skills.filter((skill): skill is ComplaintCategory =>
+    complaintCategories.includes(skill as ComplaintCategory),
+  );
+  if (skills.length === 0) {
+    return { ok: false, error: "Choose at least one skill." };
+  }
+
+  const store = getSessionRecords();
+  const id = createId("staff");
+  store.staff.push({ id, name, phone, skills });
+  return { ok: true, id };
+}
+
 export function restoreSampleRecords() {
   resetSessionRecords();
 }

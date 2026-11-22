@@ -109,7 +109,12 @@ export function ComplaintStatusForm({
         member. Staff still cannot accept the task or add completion photos from their own portal.
       </p>
       <form action={action} key={state.savedAt ?? complaintId} className="mt-4 grid gap-4 sm:grid-cols-2">
-        <FormBanner error={state.error} message={state.message} className="sm:col-span-2" />
+        <FormBanner
+          error={state.error}
+          message={state.message}
+          revision={state.revision}
+          className="sm:col-span-2"
+        />
         <input type="hidden" name="id" value={complaintId} />
         <StatusFields
           key={state.savedAt ?? complaintId}

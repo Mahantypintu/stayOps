@@ -2,16 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { sampleResidentId } from "@/data/sample-clock";
 import { actionFailure, actionSuccess, type ActionState } from "@/lib/action-state";
 import { nowStamp } from "@/lib/session-time";
 import { getPrototypeRole } from "@/services/prototype-role";
+import { getPrototypeResident } from "@/services/operations";
 import {
   createComplaintForResident,
   createFloor,
   createProperty,
   createResident,
   createRoom,
+  createStaff,
   moveOutResident,
   renameRoom,
   restoreSampleRecords,
@@ -189,8 +190,12 @@ export async function createResidentComplaintAction(
   if (role !== "resident") {
     return actionFailure("Switch to the resident role before reporting an issue. This menu is not sign-in.");
   }
+  const stay = await getPrototypeResident();
+  if (!stay) {
+    return actionFailure("Add a resident as the property manager before reporting an issue.");
+  }
   const result = createComplaintForResident({
-    residentId: sampleResidentId,
+    residentId: stay.id,
     category: text(formData, "category"),
     priority: text(formData, "priority"),
     title: text(formData, "title"),
@@ -218,6 +223,22 @@ export async function updateComplaintStatusAction(
   if (!result.ok) return actionFailure(result.error);
   refreshSession();
   return actionSuccess("Status saved for this session.", nowStamp());
+}
+
+export async function createStaffAction(
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const denied = await requireManager();
+  if (denied) return actionFailure(denied);
+  const result = createStaff({
+    name: text(formData, "name"),
+    phone: text(formData, "phone"),
+    skills: formData.getAll("skills").map((value) => String(value)),
+  });
+  if (!result.ok) return actionFailure(result.error);
+  refreshSession();
+  return actionSuccess("Staff member added for this session.", nowStamp());
 }
 
 export async function restoreSampleAction(): Promise<ActionState> {

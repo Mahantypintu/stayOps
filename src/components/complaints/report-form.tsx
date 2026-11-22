@@ -24,7 +24,7 @@ export function ReportForm({
         {propertyName}, {locationLabel} is already identified for this resident. The complaint is stored
         in this running session and appears for the property manager. Photos are a later phase.
       </p>
-      <FormBanner error={state.error} message={state.message} className="mt-4" />
+      <FormBanner error={state.error} message={state.message} revision={state.revision} className="mt-4" />
       {staying ? (
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <ComplaintDraftFields />

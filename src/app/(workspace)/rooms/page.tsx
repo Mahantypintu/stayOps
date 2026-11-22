@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { RoomForms } from "@/components/properties/room-forms";
+import { RoomRecords } from "@/components/properties/room-records";
 import { PageHeader } from "@/components/ui/page-header";
-import { SearchableTable } from "@/components/ui/searchable-table";
 import { listFloors, listProperties, listRooms } from "@/services/operations";
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ export default async function RoomsPage() {
         title="Floors and rooms"
         description="Add floors and rooms for the properties in this session. Bed counts come from the beds created with each room."
       />
-      <RoomForms properties={properties} floors={floors} rooms={rooms} />
+      <RoomForms properties={properties} floors={floors} />
       <section className="rounded-2xl border border-border bg-surface p-5 shadow-card">
         <h2 className="text-sm font-semibold text-foreground">Floors</h2>
         {floors.length === 0 ? (
@@ -33,20 +33,7 @@ export default async function RoomsPage() {
           </ul>
         )}
       </section>
-      <SearchableTable
-        label="Search rooms"
-        columns={["Room", "Property", "Floor", "Beds", "Occupied", "Available"]}
-        empty="No rooms match this search."
-        searchText={rooms.map((room) => `${room.number} ${room.propertyName} ${room.floorName}`)}
-        rows={rooms.map((room) => [
-          room.number,
-          room.propertyName,
-          room.floorName,
-          room.beds,
-          room.occupied,
-          room.available,
-        ])}
-      />
+      <RoomRecords rooms={rooms} />
     </div>
   );
 }

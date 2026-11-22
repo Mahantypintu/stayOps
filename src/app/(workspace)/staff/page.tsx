@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { StaffForm } from "@/components/properties/staff-form";
 import { PageHeader } from "@/components/ui/page-header";
 import { SearchableTable } from "@/components/ui/searchable-table";
 import { listStaff } from "@/services/operations";
@@ -16,6 +17,7 @@ export default async function StaffPage() {
         title="Staff and assignments"
         description="Maintenance staff in this session, and how many open complaints each person is assigned."
       />
+      <StaffForm />
       <SearchableTable
         label="Search staff"
         columns={["Staff", "Phone", "Skills", "Open assignments"]}
@@ -28,10 +30,6 @@ export default async function StaffPage() {
           person.openAssignments,
         ])}
       />
-      <p className="text-sm text-muted">
-        Assign a person from the complaint details screen. Adding or editing staff records, and
-        letting staff accept work, are a later phase.
-      </p>
     </div>
   );
 }

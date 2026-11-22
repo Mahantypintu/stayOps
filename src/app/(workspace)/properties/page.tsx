@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PropertyForms } from "@/components/properties/property-forms";
+import { PropertyRecords } from "@/components/properties/property-records";
 import { PageHeader } from "@/components/ui/page-header";
-import { SearchableTable } from "@/components/ui/searchable-table";
 import { listProperties } from "@/services/operations";
 
 export const metadata: Metadata = {
@@ -17,22 +17,8 @@ export default async function PropertiesPage() {
         title="Properties"
         description="PG properties in this session, with beds counted from the room records."
       />
-      <PropertyForms properties={properties} />
-      <SearchableTable
-        label="Search properties"
-        columns={["Property", "Address", "Floors", "Rooms", "Beds", "Occupied", "Available"]}
-        empty="No properties match this search."
-        searchText={properties.map((property) => `${property.name} ${property.address} ${property.city}`)}
-        rows={properties.map((property) => [
-          property.name,
-          `${property.address}, ${property.city}`,
-          property.floors,
-          property.rooms,
-          property.beds,
-          property.occupied,
-          property.available,
-        ])}
-      />
+      <PropertyForms />
+      <PropertyRecords properties={properties} />
     </div>
   );
 }

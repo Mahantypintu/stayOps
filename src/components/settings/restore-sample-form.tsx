@@ -17,7 +17,7 @@ export function RestoreSampleForm() {
         original sample records back and removes anything added in this session.
       </p>
       <div className="mt-4">
-        <FormBanner error={state.error} message={state.message} />
+        <FormBanner error={state.error} message={state.message} revision={state.revision} />
         <Button type="submit" variant="secondary" disabled={pending}>
           {pending ? "Restoring…" : "Restore sample records"}
         </Button>

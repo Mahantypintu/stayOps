@@ -63,6 +63,9 @@ function ActivityList({
   return (
     <section className="rounded-2xl border border-border bg-surface p-5 shadow-card">
       <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+      {items.length === 0 ? (
+        <p className="mt-4 text-sm text-muted">Nothing recorded yet.</p>
+      ) : (
       <ul className="mt-4 flex flex-col gap-4">
         {items.map((item) => (
           <li key={item.id}>
@@ -76,6 +79,7 @@ function ActivityList({
           </li>
         ))}
       </ul>
+      )}
     </section>
   );
 }

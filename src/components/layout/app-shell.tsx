@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Sidebar } from "@/components/layout/sidebar";
-import { SampleNotice } from "@/components/ui/sample-notice";
 import type { PrototypeRole } from "@/lib/prototype-role";
 import type { NavSection } from "@/types/navigation";
 import type { Workspace } from "@/types/workspace";
@@ -14,13 +13,11 @@ export function AppShell({
   workspace,
   role,
   sections,
-  sampleAsOf,
   children,
 }: {
   workspace: Workspace;
   role: PrototypeRole;
   sections: NavSection[];
-  sampleAsOf: string;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -64,7 +61,6 @@ export function AppShell({
           role={role}
           onMenu={() => setOpenPath(pathname)}
         />
-        <SampleNotice asOf={sampleAsOf} />
         <main
           id="main-content"
           tabIndex={-1}
