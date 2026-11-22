@@ -30,8 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# Local secrets. .env.local holds the Gemini API key and must not be committed.
 .env*
+.env.local
 
 # vercel
 .vercel
